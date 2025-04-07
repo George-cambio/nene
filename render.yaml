@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: zmo-faceswap-bot
+    runtime: python
+    buildCommand: ""
+    startCommand: "python main.py"
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: ZMO_API_KEY
+        sync: false
