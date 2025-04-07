@@ -7,8 +7,8 @@ from telegram.ext import (
 )
 
 # Carga de variables desde el entorno
-BOT_TOKEN = os.getenv("7749659951:AAEI_QjqnGWlo6_K7yf9f6K0NIGtva_92sU")
-ZMO_API_KEY = os.getenv("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI5ZTI1NjU0ZDYwYzY0MDhlYjE1NGQ2ZjhjZGM5Yjg1NSIsImF1dGhLZXkiOiJTVEFOREFSRF9VU0VSLEdST1VQX0FETUlOLFNZU19BRE1JTiIsImdyb3VwSWQiOiJhYmUyNzIwYjBhYTU0ZTFjOWVlNGQ0MzNkNTc0NjYzYiIsImV4cCI6MTY4OTc1NjczMn0.LnsMwrH_Bvz17e_dj_BLYwcKRLesCoXHm72x16-kqHtnoYKU4cVwYITJf4DQvSEaq5XV_ksa4WjZ1LntU2gT")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+ZMO_API_KEY = os.getenv("ZMO_API_KEY")
 
 # Verificación
 if not BOT_TOKEN:
