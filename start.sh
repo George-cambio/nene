@@ -1,2 +1,2 @@
-#!/bin/bash
-python proba3.py
+##!/bin/bash
+python main.py
