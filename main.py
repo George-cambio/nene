@@ -1,6 +1,10 @@
 import os
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+import logging
 import requests
+from telegram import Update
+from telegram.ext import (
+    ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+)
 
 # Carga de variables desde el entorno
 BOT_TOKEN = os.getenv("7749659951:AAEI_QjqnGWlo6_K7yf9f6K0NIGtva_92sU")
@@ -9,29 +13,31 @@ ZMO_API_KEY = os.getenv("eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI5ZTI1NjU0ZDYwYzY0MDhlYj
 # Verificación
 if not BOT_TOKEN:
     raise ValueError("BOT_TOKEN no está definido en las variables de entorno.")
-
 if not ZMO_API_KEY:
     raise ValueError("ZMO_API_KEY no está definido en las variables de entorno.")
 
-# Variables para almacenar temporalmente imágenes
+# Configuración del log
+logging.basicConfig(level=logging.INFO)
+
+# Almacenamiento temporal por usuario
 user_images = {}
 
-# Función de bienvenida
-def start(update, context):
-    update.message.reply_text("¡Hola! Soy tu bot con ZMO.AI 🤖\nEnvíame primero la imagen original y luego la imagen del rostro para hacer el face swap.")
+# Comando /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("¡Hola! Envíame primero la imagen original y luego la del rostro para hacer el swap.")
 
-# Función para manejar imágenes
-def handle_image(update, context):
+# Manejo de imágenes
+async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.message.from_user.id
-    photo_file = update.message.photo[-1].get_file()
+    photo_file = await update.message.photo[-1].get_file()
     image_url = photo_file.file_path
 
     if user_id not in user_images:
         user_images[user_id] = {"original": image_url, "face": None}
-        update.message.reply_text("Imagen original recibida ✅. Ahora envíame la imagen del rostro que quieres usar para el swap.")
+        await update.message.reply_text("✅ Imagen original recibida. Ahora envíame la imagen del rostro.")
     elif not user_images[user_id]["face"]:
         user_images[user_id]["face"] = image_url
-        update.message.reply_text("Imagen del rostro recibida ✅. Procesando... 🔄")
+        await update.message.reply_text("🧠 Procesando el face swap...")
 
         headers = {
             "Content-Type": "application/json",
@@ -49,27 +55,21 @@ def handle_image(update, context):
             result = response.json()
 
             if "resultUrl" in result:
-                update.message.reply_text("✅ Swap completado")
-                update.message.reply_photo(result["resultUrl"])
+                await update.message.reply_photo(result["resultUrl"])
             else:
-                update.message.reply_text("⚠️ No se pudo realizar el swap. Intenta con otras imágenes.")
-
+                await update.message.reply_text("⚠️ No se pudo hacer el swap. Intenta con otras imágenes.")
         except Exception as e:
-            update.message.reply_text(f"Ocurrió un error: {str(e)}")
+            await update.message.reply_text(f"❌ Error: {e}")
 
-        # Reiniciar imágenes del usuario
+        # Reiniciar datos del usuario
         user_images[user_id] = {"original": None, "face": None}
     else:
-        update.message.reply_text("Ya recibí dos imágenes. Si deseas hacer otro swap, envíame una nueva imagen original.")
+        await update.message.reply_text("Ya tengo dos imágenes. Si quieres repetir, envíame una nueva imagen original.")
 
-# Configuración del bot
-updater = Updater(BOT_TOKEN, use_context=True)
-dispatcher = updater.dispatcher
-
-dispatcher.add_handler(CommandHandler("start", start))
-dispatcher.add_handler(MessageHandler(Filters.photo, handle_image))
-
-# Arranque del bot
-updater.start_polling()
-print("Bot corriendo...")
-updater.idle()
+# Main
+if __name__ == "__main__":
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.PHOTO, handle_image))
+    print("🤖 Bot corriendo...")
+    app.run_polling()
